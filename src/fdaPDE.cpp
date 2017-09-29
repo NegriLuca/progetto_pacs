@@ -8,6 +8,7 @@
 #include "mesh.h"
 #include "finite_element.h"
 #include "matrix_assembler.h"
+#include "FPCAData.h"
 
 #include "mixedFERegression.h"
 
@@ -546,6 +547,139 @@ SEXP get_integration_points(SEXP Rmesh, SEXP Rorder, SEXP Rmydim, SEXP Rndim)
     // result list
     return(result);
 }
+//Function for doing Functional Principal Component Analysis with functional penalization
+SEXP FPCA_Laplace(SEXP Rlocations, SEXP Robservations, SEXP Rmesh, SEXP Rorder, SEXP Rmydim, SEXP Rndim, SEXP Rlambda, SEXP RBCIndices, SEXP RBCValues, SEXP DOF, SEXP RnPC)
+{
+    //Set data
+	FPCAData fPCAData(Rlocations, Robservations, Rorder, Rlambda, RBCIndices, RBCValues, RnPC, DOF);
 
+
+	SEXP result = NILSXP;
+
+	int mydim=INTEGER(Rmydim)[0];
+	int ndim=INTEGER(Rndim)[0];
+
+//the following code do not distinguish tha value of mydim (=2)
+/*
+    if(regressionData.getOrder()==1 && ndim==3)
+    {
+		MeshHandler<1,2,3> mesh(Rmesh);
+		MixedFERegression<RegressionData, IntegratorTriangleP2,1,2,3> regression(mesh,regressionData);
+
+		regression.smoothLaplace();
+
+		const std::vector<VectorXr>& solution = regression.getSolution();
+		const std::vector<Real>& dof = regression.getDOF();
+		//Copy result in R memory
+		result = PROTECT(Rf_allocVector(VECSXP, 2));
+		SET_VECTOR_ELT(result, 0, Rf_allocMatrix(REALSXP, solution[0].size(), solution.size()));
+		SET_VECTOR_ELT(result, 1, Rf_allocVector(REALSXP, solution.size()));
+
+		Real *rans = REAL(VECTOR_ELT(result, 0));
+		for(UInt j = 0; j < solution.size(); j++)
+		{
+			for(UInt i = 0; i < solution[0].size(); i++)
+				rans[i + solution[0].size()*j] = solution[j][i];
+		}
+
+		Real *rans2 = REAL(VECTOR_ELT(result, 1));
+		for(UInt i = 0; i < solution.size(); i++)
+		{
+			rans2[i] = dof[i];
+		}
+		UNPROTECT(1);
+
+    }
+	else if(regressionData.getOrder()==1 && ndim==2)
+    {
+		MeshHandler<1,2,2> mesh(Rmesh);
+		//std::cout<< "Mesh loaded"<<std::endl;
+		MixedFERegression<RegressionData, IntegratorTriangleP2,1,2,2> regression(mesh,regressionData);
+
+		regression.smoothLaplace();
+
+		const std::vector<VectorXr>& solution = regression.getSolution();
+		const std::vector<Real>& dof = regression.getDOF();
+		//Copy result in R memory
+		result = PROTECT(Rf_allocVector(VECSXP, 2));
+		SET_VECTOR_ELT(result, 0, Rf_allocMatrix(REALSXP, solution[0].size(), solution.size()));
+		SET_VECTOR_ELT(result, 1, Rf_allocVector(REALSXP, solution.size()));
+
+		Real *rans = REAL(VECTOR_ELT(result, 0));
+		for(UInt j = 0; j < solution.size(); j++)
+		{
+			for(UInt i = 0; i < solution[0].size(); i++)
+				rans[i + solution[0].size()*j] = solution[j][i];
+		}
+
+		Real *rans2 = REAL(VECTOR_ELT(result, 1));
+		for(UInt i = 0; i < solution.size(); i++)
+		{
+			rans2[i] = dof[i];
+		}
+		UNPROTECT(1);
+
+    }
+	else if(regressionData.getOrder()==2 && ndim==3)
+	{
+		MeshHandler<2,2,3> mesh(Rmesh);
+		//std::cout<< "Mesh loaded"<<std::endl;
+		MixedFERegression<RegressionData, IntegratorTriangleP4,2,2,3> regression(mesh,regressionData);
+
+		regression.smoothLaplace();
+
+		const std::vector<VectorXr>& solution = regression.getSolution();
+		const std::vector<Real>& dof = regression.getDOF();
+		//Copy result in R memory
+		result = PROTECT(Rf_allocVector(VECSXP, 2));
+		SET_VECTOR_ELT(result, 0, Rf_allocMatrix(REALSXP, solution[0].size(), solution.size()));
+		SET_VECTOR_ELT(result, 1, Rf_allocVector(REALSXP, solution.size()));
+
+		Real *rans = REAL(VECTOR_ELT(result, 0));
+		for(UInt j = 0; j < solution.size(); j++)
+		{
+			for(UInt i = 0; i < solution[0].size(); i++)
+				rans[i + solution[0].size()*j] = solution[j][i];
+		}
+
+		Real *rans2 = REAL(VECTOR_ELT(result, 1));
+		for(UInt i = 0; i < solution.size(); i++)
+		{
+			rans2[i] = dof[i];
+		}
+		UNPROTECT(1);
+    }
+	else if(regressionData.getOrder()==2 && ndim==2)
+	{
+		MeshHandler<2,2,2> mesh(Rmesh);
+		//std::cout<< "Mesh loaded"<<std::endl;
+		MixedFERegression<RegressionData, IntegratorTriangleP4,2,2,2> regression(mesh,regressionData);
+
+		regression.smoothLaplace();
+
+		const std::vector<VectorXr>& solution = regression.getSolution();
+		const std::vector<Real>& dof = regression.getDOF();
+		//Copy result in R memory
+		result = PROTECT(Rf_allocVector(VECSXP, 2));
+		SET_VECTOR_ELT(result, 0, Rf_allocMatrix(REALSXP, solution[0].size(), solution.size()));
+		SET_VECTOR_ELT(result, 1, Rf_allocVector(REALSXP, solution.size()));
+
+		Real *rans = REAL(VECTOR_ELT(result, 0));
+		for(UInt j = 0; j < solution.size(); j++)
+		{
+			for(UInt i = 0; i < solution[0].size(); i++)
+				rans[i + solution[0].size()*j] = solution[j][i];
+		}
+
+		Real *rans2 = REAL(VECTOR_ELT(result, 1));
+		for(UInt i = 0; i < solution.size(); i++)
+		{
+			rans2[i] = dof[i];
+		}
+		UNPROTECT(1);
+    }
+	*/
+	return(result);
+}
 
 }
