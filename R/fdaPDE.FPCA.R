@@ -45,3 +45,4 @@ smooth.FEM.FPCA<-function(locations = NULL, observations, FEMbasis, lambda, BC =
 	  lambda, ndim, mydim, BC, GCV,nPC)
 	  numnodes = FEMbasis$mesh$nnodes
   }
+  }

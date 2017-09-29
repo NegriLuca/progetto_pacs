@@ -38,6 +38,11 @@ class  FPCAData{
 
 		//bool inputType;
 		bool DOF_;
+		
+		#ifdef R_VERSION_
+		void setLocations(SEXP Rlocations);
+		void setObservations(SEXP Robservations);
+		#endif
 
 	public:
 		//! A basic version of the constructor.
@@ -71,7 +76,17 @@ class  FPCAData{
 		*/
 		FPCAData(){};
 
-		explicit FPCAData(std::vector<Point>& locations, MatrixXr& observations, UInt order, std::vector<Real> lambda, std::vector<UInt>& bc_indices, std::vector<Real>& bc_values,UInt nPC, bool DOF);
+		#ifdef R_VERSION_
+		explicit FPCAData(SEXP Rlocations, SEXP Robservations, SEXP Rorder,
+		SEXP Rlambda,SEXP RBCIndices, SEXP RBCValues,SEXP RnPC, SEXP DOF);
+		#endif
+
+				
+		
+		
+		explicit FPCAData(std::vector<Point>& locations, MatrixXr& observations,
+		UInt order, std::vector<Real> lambda, std::vector<UInt>& bc_indices,
+		std::vector<Real>& bc_values,UInt nPC, bool DOF);
 
 
 		void printObservations(std::ostream & out) const;
