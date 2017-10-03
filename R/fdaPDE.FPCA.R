@@ -27,7 +27,7 @@ smooth.FEM.FPCA<-function(locations = NULL, observations, FEMbasis, lambda, BC =
     BC$BC_values = as.matrix(BC$BC_values)
   }
 #MODIFICARE PER SURFACE_MESH	  
-  checkSmoothingParametersSizeFPCA(locations, observations, FEMbasis, lambda, covariates, BC, GCV, CPP_CODE, PDE_parameters_constant = NULL, PDE_parameters_func = NULL, ndim, mydim)
+  checkSmoothingParametersSize(locations, observations, FEMbasis, lambda, covariates, BC, GCV, CPP_CODE, PDE_parameters_constant = NULL, PDE_parameters_func = NULL, ndim, mydim,FPCA=TRUE)
 	  ################## End checking parameters, sizes and conversion #############################
 
   if(class(FEMbasis$mesh) == 'MESH2D'){	  

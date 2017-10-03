@@ -63,11 +63,13 @@ checkSmoothingParameters<-function(locations = NULL, observations, FEMbasis, lam
   }
 }
 
-checkSmoothingParametersSize<-function(locations = NULL, observations, FEMbasis, lambda, covariates = NULL, BC = NULL, GCV = FALSE, CPP_CODE = TRUE, PDE_parameters_constant = NULL, PDE_parameters_func = NULL, ndim, mydim)
+checkSmoothingParametersSize<-function(locations = NULL, observations, FEMbasis, lambda, covariates = NULL, BC = NULL, GCV = FALSE, CPP_CODE = TRUE, PDE_parameters_constant = NULL, PDE_parameters_func = NULL, ndim, mydim,FPCA=FALSE)
 {
   #################### Parameter Check #########################
+  if(FPCA==FALSE){
   if(ncol(observations) != 1)
     stop("'observations' must be a column vector")
+    }
   if(nrow(observations) < 1)
     stop("'observations' must contain at least one element")
   if(is.null(locations))
