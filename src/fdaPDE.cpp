@@ -553,7 +553,6 @@ SEXP FPCA_Laplace(SEXP Rlocations, SEXP Robservations, SEXP Rmesh, SEXP Rorder, 
     //Set data
 	FPCAData fPCAData(Rlocations, Robservations, Rorder, Rlambda, RBCIndices, RBCValues, RnPC, DOF);
 
-
 	SEXP result = NILSXP;
 
 	int mydim=INTEGER(Rmydim)[0];

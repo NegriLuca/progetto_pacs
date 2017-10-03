@@ -1,4 +1,4 @@
-CPP_smooth.FEM.basis<-function(locations, observations, FEMbasis, lambda, ndim, mydim, BC = NULL, GCV,nPC)
+CPP_smooth.FEM.FPCA<-function(locations, observations, FEMbasis, lambda, ndim, mydim, BC = NULL, GCV,nPC)
 { 
   # Indexes in C++ starts from 0, in R from 1, opportune transformation
   ##TO BE CHANGED SOON: LOW PERFORMANCES, IMPLIES COPY OF PARAMETERS
@@ -61,7 +61,7 @@ CPP_smooth.FEM.basis<-function(locations, observations, FEMbasis, lambda, ndim, 
 
 
 
-CPP_smooth.manifold.FEM.basis<-function(locations, observations, mesh, lambda, ndim, mydim, BC = NULL, GCV,nPC)
+CPP_smooth.manifold.FEM.FPCA<-function(locations, observations, mesh, lambda, ndim, mydim, BC = NULL, GCV,nPC)
 {
   # Indexes in C++ starts from 0, in R from 1, opportune transformation
   # This is done in C++ now to optimize speed
