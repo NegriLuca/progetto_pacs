@@ -551,18 +551,37 @@ SEXP get_integration_points(SEXP Rmesh, SEXP Rorder, SEXP Rmydim, SEXP Rndim)
 SEXP FPCA_Laplace(SEXP Rlocations, SEXP Robservations, SEXP Rmesh, SEXP Rorder, SEXP Rmydim, SEXP Rndim, SEXP Rlambda, SEXP RBCIndices, SEXP RBCValues, SEXP DOF, SEXP RnPC)
 {
     //Set data
-	FPCAData fPCAData(Rlocations, Robservations, Rorder, Rlambda, RBCIndices, RBCValues, RnPC, DOF);
+	FPCAData fPCAdata(Rlocations, Robservations, Rorder, Rlambda, RBCIndices, RBCValues, RnPC, DOF);
 
 	SEXP result = NILSXP;
 
 	int mydim=INTEGER(Rmydim)[0];
 	int ndim=INTEGER(Rndim)[0];
+	
 
 //the following code do not distinguish tha value of mydim (=2)
-/*
-    if(regressionData.getOrder()==1 && ndim==3)
+
+    if(fPCAdata.getOrder()==1 && ndim==3)
     {
 		MeshHandler<1,2,3> mesh(Rmesh);
+		//std::cout<<"Dimension of X: "<<fPCAdata.getObservations().rows()<<"  "<<fPCAdata.getObservations().cols()<<std::endl;
+		//std::cout<<"Dimension of X transp: "<<fPCAdata.getObservations().transpose().rows()<<"  "<<fPCAdata.getObservations().transpose().cols()<<std::endl;
+		Eigen::JacobiSVD<MatrixXr> svd(fPCAdata.getObservations().transpose(),Eigen::ComputeThinU|Eigen::ComputeThinV);
+		//std::cout<<"Dimension of U: "<<svd.matrixU().rows()<<"  "<<svd.matrixU().cols()<<std::endl;
+		//std::cout<<"Dimension of V: "<<svd.matrixV().rows()<<"  "<<svd.matrixV().cols()<<std::endl;
+		//std::cout<<svd.matrixU()<<std::endl;
+		VectorXr fs=svd.matrixV().col(0);
+		//std::cout<<"Vector fs: "<<fs<<std::endl;
+		VectorXr u=fPCAdata.getObservations().transpose()*fs;
+		//std::cout<<"Vector u: "<<u<<std::endl;
+		u=u/u.norm();
+		//std::cout<<"Vector u normalized: "<<u<<std::endl;
+		VectorXr data=fPCAdata.getObservations()*u;
+		//std::cout<<"Vector data : "<<data<<std::endl;
+		
+		MixedFERegression<FPCAData,IntegratorTriangleP2,1,2,3> fpca(mesh,fPCAdata);
+		
+		/*
 		MixedFERegression<RegressionData, IntegratorTriangleP2,1,2,3> regression(mesh,regressionData);
 
 		regression.smoothLaplace();
@@ -587,8 +606,8 @@ SEXP FPCA_Laplace(SEXP Rlocations, SEXP Robservations, SEXP Rmesh, SEXP Rorder, 
 			rans2[i] = dof[i];
 		}
 		UNPROTECT(1);
-
-    }
+*/
+    }/*
 	else if(regressionData.getOrder()==1 && ndim==2)
     {
 		MeshHandler<1,2,2> mesh(Rmesh);

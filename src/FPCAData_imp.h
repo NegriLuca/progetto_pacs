@@ -14,6 +14,9 @@ FPCAData::FPCAData(std::vector<Point>& locations, MatrixXr& observations, UInt o
 	{
 		locations_by_nodes_= false;
 	}
+	//Initialize loadings vector
+	Eigen::JacobiSVD<MatrixXr> svd(observations_.transpose(),Eigen::ComputeThinU|Eigen::ComputeThinV);
+	loadings_=svd.matrixV().col(0);
 }
 
 #ifdef R_VERSION_
@@ -23,6 +26,9 @@ FPCAData::FPCAData(SEXP Rlocations, SEXP Robservations, SEXP Rorder, SEXP Rlambd
 	setLocations(Rlocations);
 	setObservations(Robservations);
 
+	//Initialize loadings vector
+	Eigen::JacobiSVD<MatrixXr> svd(observations_.transpose(),Eigen::ComputeThinU|Eigen::ComputeThinV);
+	loadings_=svd.matrixV().col(0);
 	
 	nPC_ = INTEGER(RnPC)[0];
 	order_ =  INTEGER(Rorder)[0];
@@ -115,6 +121,17 @@ void FPCAData::printLocations(std::ostream & out) const
 		locations_[i].print(out);
 		//std::cout<<std::endl;
 	}
+}
+
+void FPCAData::setScores()
+{
+	scores_=observations_.transpose()*loadings_;
+	scores_=scores_/scores_.norm();
+}
+
+void FPCAData::setDataForRegression()
+{
+	ObservationData_=observations_*scores_;
 }
 
 #endif

@@ -8,6 +8,9 @@ data(hub)
 ## Generate some random data ##
 
 nnodes = hub$nnodes
+cat("Nnodes: \n")
+nnodes
+cat("\n")
 
 datamatrix<-NULL;
 for(ii in 1:50){
@@ -24,6 +27,16 @@ for (i in 0:(nnodes-1)){
 data=func_evaluation+rnorm(nnodes,mean=0,sd=0.5)
 datamatrix<-cbind(datamatrix,data)
 }
+
+#SVD<-svd(t(datamatrix),nu=1,nv=1,LINPACK=FALSE)
+#u_hat<-SVD$u
+#str(u_hat)
+#datamatrix%*%u_hat
+#cat("U of SVD\n")
+#SVD$u
+
+#cat("V of SVD\n")
+#SVD$v
 
 FEMbasis <- create.FEM.basis(hub)
 

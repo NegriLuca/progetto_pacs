@@ -35,6 +35,13 @@ class  FPCAData{
 		//Number of Principal Components to compute
 		UInt nPC_;
 		
+		
+		//Loadings and scores estimation
+		VectorXr scores_;
+		VectorXr loadings_;
+		
+		//Regression data
+		VectorXr ObservationData_;
 
 		//bool inputType;
 		bool DOF_;
@@ -91,6 +98,10 @@ class  FPCAData{
 
 		void printObservations(std::ostream & out) const;
 		void printLocations(std::ostream & out) const;
+		
+		//void setLoadings();
+		void setScores();
+		void setDataForRegression();
 
 		//! A method returning a reference to the observations vector
 		inline MatrixXr const & getObservations() const {return observations_;}
@@ -113,6 +124,15 @@ class  FPCAData{
 		inline std::vector<Real> const & getDirichletValues() const {return bc_values_;}
 		//! A method returning the number of Principal Components to compute
 		inline UInt const getNPC() const {return nPC_;}
+		
+		//!A method returning the apporoximated loadings
+		inline VectorXr const & getLoadings() const {return loadings_;}
+		
+		//!A method returning the approximated scores
+		inline VectorXr const & getScores() const {return scores_;}
+		
+		//!A method returning the DataForRegression
+		inline VectorXr const & getDataForRegression() const {return ObservationData_;}
 };
 
 #include "FPCAData_imp.h"
