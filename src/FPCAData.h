@@ -108,7 +108,7 @@ class  FPCAData{
 		//! A method returning the number of location points
 		inline UInt const getNumberofLocations() const {return observations_.rows();}
 		//! A method returning the number of observations
-		inline UInt const getNumberofObservations() const {return observations_.cols();}
+		inline UInt const getNumberofObservations() const {return observations_.rows();}
 		//! A method returning the locations of the observations
 		inline std::vector<Point> const & getLocations() const {return locations_;}
 		inline bool isLocationsByNodes() const {return locations_by_nodes_;}

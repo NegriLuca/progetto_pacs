@@ -8,6 +8,7 @@
 #include "param_functors.h"
 #include "regressionData.h"
 #include "solver.h"
+#include "FPCAData.h"
 
 //! A LinearSystem class: A class for the linear system construction and resolution.
 
@@ -97,5 +98,6 @@ class MixedFERegression{
 };
 
 #include "mixedFERegression_imp.h"
+#include "mixedFERegression_FPCA_spec.h"
 
 #endif
