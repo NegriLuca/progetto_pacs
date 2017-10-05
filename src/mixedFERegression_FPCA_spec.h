@@ -5,7 +5,7 @@ template<typename Integrator, UInt ORDER, UInt mydim, UInt ndim>
 class MixedFERegression<FPCAData,Integrator,ORDER,mydim,ndim>{
 	private:
 		const MeshHandler<ORDER,mydim,ndim> &mesh_;
-		const FPCAData& fPCAData_;
+		FPCAData& fPCAData_;
 		std::vector<coeff> tripletsData_;
 
 		//SpMat NWblock_;
@@ -30,7 +30,7 @@ class MixedFERegression<FPCAData,Integrator,ORDER,mydim,ndim>{
 
 	public:
 		//!A Constructor.
-		MixedFERegression(const MeshHandler<ORDER,mydim,ndim>& mesh, const FPCAData& fPCAData):mesh_(mesh), fPCAData_(fPCAData){};
+		MixedFERegression(const MeshHandler<ORDER,mydim,ndim>& mesh, FPCAData& fPCAData):mesh_(mesh), fPCAData_(fPCAData){};
 		
 		//!A Destructor
 		//~Model(){};
@@ -52,8 +52,11 @@ class MixedFERegression<FPCAData,Integrator,ORDER,mydim,ndim>{
 		//		|AMat | MMat	|
 
 
-
+		
 		void smoothLaplace();
+		
+		void smoothFPCA();
+		
 		//void smoothEllipticPDE();
 		//void smoothEllipticPDESpaceVarying();
 

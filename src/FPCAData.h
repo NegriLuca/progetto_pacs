@@ -102,11 +102,11 @@ class  FPCAData{
 		//void setLoadings();
 		void setScores();
 		void setDataForRegression();
+		void setLoadings(SpMat psi, VectorXr f_sol);
 
 		//! A method returning a reference to the observations vector
 		inline MatrixXr const & getObservations() const {return observations_;}
-		//! A method returning the number of location points
-		inline UInt const getNumberofLocations() const {return observations_.rows();}
+		
 		//! A method returning the number of observations
 		inline UInt const getNumberofObservations() const {return observations_.rows();}
 		//! A method returning the locations of the observations

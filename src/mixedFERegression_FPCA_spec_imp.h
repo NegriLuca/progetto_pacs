@@ -219,7 +219,7 @@ void MixedFERegression<FPCAData,Integrator,ORDER,mydim,ndim>::getRightHandData(V
 		}
 		else
 		{
-			rightHandData=psi_.transpose()*fPCAData_.getObservations();
+			rightHandData=psi_.transpose()*fPCAData_.getDataForRegression();
 		}
 }
 
@@ -345,24 +345,12 @@ void MixedFERegression<FPCAData,Integrator,ORDER,mydim,ndim>::smoothLaplace()
 
 }
 
-/*
-//Implementation kept from Sangalli et al
-//Templatization in this method is only partial! For the moment it only works in
-//the case mydim=ndim=2
+
+//Implementation of FPCA algorithm
 template<typename Integrator, UInt ORDER, UInt mydim, UInt ndim>
-void MixedFERegression<FPCAData,Integrator,ORDER,mydim,ndim>::smoothEllipticPDE()
+void MixedFERegression<FPCAData,Integrator,ORDER,mydim,ndim>::smoothFPCA()
 {
-
-if(mydim!=2 || ndim !=2){
-
-	#ifdef R_VERSION_
-		Rprintf("ERROR: these dimensions are not yet implemented, for the moment smoothEllipticPDE is available for mydim=ndim=2");
-	#else
-		std::cout << "ERROR: these dimensions are not yet implemented, for the moment smoothEllipticPDE is available for mydim=ndim=2\n";
-	#endif
-
-}else{
-	//std::cout<<"Elliptic PDE Penalization - Order: "<<ORDER<<std::endl;
+	//std::cout<<"Laplace Penalization - Order: "<<ORDER<<std::endl;
 
 	//UInt ndata=regressionData_.getObservations().size();
 	UInt nnodes=mesh_.num_nodes();
@@ -371,29 +359,19 @@ if(mydim!=2 || ndim !=2){
 
 	typedef EOExpr<Mass> ETMass;
 	typedef EOExpr<Stiff> ETStiff;
-	typedef EOExpr<Grad> ETGrad;
 
 	Mass EMass;
 	Stiff EStiff;
-	Grad EGrad;
 
 	ETMass mass(EMass);
 	ETStiff stiff(EStiff);
-	ETGrad grad(EGrad);
 
-	if(!regressionData_.isLocationsByNodes())
+	if(!fPCAData_.isLocationsByNodes())
 	{
-		//std::cout<<"HERE";
 		setPsi();
 	}
 
-	if(!regressionData_.getCovariates().rows() == 0)
-	{
-		setH();
-		setQ();
-	}
-
-    if(!regressionData_.isLocationsByNodes())
+    if(!fPCAData_.isLocationsByNodes())
     {
     	getDataMatrix(DMat_);
     }
@@ -401,168 +379,64 @@ if(mydim!=2 || ndim !=2){
     {
     	getDataMatrixByIndices(DMat_);
     }
-    //std::cout<<"Block Data"<<DMat<<std::endl;
+    std::cout<<"Block Data"<<DMat_<<std::endl;
+    
+    std::cout<<"PSI: "<<psi_<<std::endl;
 
-
-
-    const Real& c = regressionData_.getC();
-    const Eigen::Matrix<Real,2,2>& K = regressionData_.getK();
-    const Eigen::Matrix<Real,2,1>& beta = regressionData_.getBeta();
-    Assembler::operKernel(c*mass+stiff[K]+dot(beta,grad), mesh_, fe, AMat_);
+	
+    Assembler::operKernel(stiff, mesh_, fe, AMat_);
     Assembler::operKernel(mass, mesh_, fe, MMat_);
 
-    VectorXr rightHandData;
-    getRightHandData(rightHandData);
-    _b = VectorXr::Zero(2*nnodes);
-    _b.topRows(nnodes)=rightHandData;
-    //std::cout<<"b vector"<<_b;
 
-    _solution.resize(regressionData_.getLambda().size());
-    _dof.resize(regressionData_.getLambda().size());
-#pragma omp parallel for
-    for(UInt i = 0; i<regressionData_.getLambda().size(); ++i)
+
+    for(auto j=0;j<2;j++){
+	fPCAData_.setScores();
+	std::cout<<"Scores: "<<fPCAData_.getScores()<<std::endl;
+	fPCAData_.setDataForRegression();
+	std::cout<<"DataForRegression: "<<fPCAData_.getDataForRegression()<<std::endl;
+	
+    	VectorXr rightHandData;
+    	getRightHandData(rightHandData);
+    	_b = VectorXr::Zero(2*nnodes);
+    	_b.topRows(nnodes)=rightHandData;
+
+    	_solution.resize(fPCAData_.getLambda().size());
+    	std::cout<<"Solution dim: "<<_solution.size()<<std::endl;
+    	_dof.resize(fPCAData_.getLambda().size());
+
+	#pragma omp parallel for
+    	for(UInt i = 0; i<fPCAData_.getLambda().size(); ++i)
 	{
     	//build(tripletsData_,(-regressionData_.getLambda())*stiff, (-regressionData_.getLambda())*mass, righthand, forcing);
 
-    	Real lambda = regressionData_.getLambda()[i];
+    	Real lambda = fPCAData_.getLambda()[i];
     	SpMat AMat_lambda = (-lambda)*AMat_;
     	SpMat MMat_lambda = (-lambda)*MMat_;
-    	//this->buildCoeffMatrix(DMat_, AMat_lambda, MMat_lambda);
 
-	SpMat coeffmatrix_lambda;
-	buildCoeffMatrix(DMat_, AMat_lambda, MMat_lambda, coeffmatrix_lambda);
-    	//std::cout<<"AMat"<<std::endl<<_coeffmatrix;
-
-
-    	//Appling border conditions if necessary
-    	if(regressionData_.getDirichletIndices().size() != 0)
-    		addDirichletBC(regressionData_.getDirichletIndices(), regressionData_.getDirichletValues(), coeffmatrix_lambda);
-
-    	//prova.solveSystem<SpConjGrad>();
-    	this->template solve<SpLU>(i, coeffmatrix_lambda);
-    	if(regressionData_.computeDOF())
-    		computeDegreesOfFreedom(i,coeffmatrix_lambda);
-    	else
-    		_dof[i] = -1;
-
-	}
-
-}
-
-}
-
-
-//Implementation kept from Sangalli et al
-//Templatization in this method is only partial! For the moment it only works in
-//the case mydim=ndim=2
-template<typename InputHandler, typename Integrator, UInt ORDER,UInt mydim, UInt ndim>
-void MixedFERegression<InputHandler,Integrator,ORDER, mydim, ndim>::smoothEllipticPDESpaceVarying()
-{
-
-if(mydim!=2 || ndim !=2){
-
-	#ifdef R_VERSION_
-		Rprintf("ERROR: these dimensions are not yet implemented, for the moment SpaceVarying is available for mydim=ndim=2");
-	#else
-		std::cout << "ERROR: these dimensions are not yet implemented, for the moment SpaceVarying is available for mydim=ndim=2\n";
-	#endif
-
-}else{
-	//std::cout<<"Space-varying Coefficient - Elliptic PDE Penalization - Order: "<<ORDER<<std::endl;
-		//UInt ndata=regressionData_.getObservations().size();
-		UInt nnodes=mesh_.num_nodes();
-
-		FiniteElement<Integrator, ORDER,mydim,ndim> fe;
-
-		typedef EOExpr<Mass> ETMass;
-		typedef EOExpr<Stiff> ETStiff;
-		typedef EOExpr<Grad> ETGrad;
-
-		Mass EMass;
-		Stiff EStiff;
-		Grad EGrad;
-
-		ETMass mass(EMass);
-		ETStiff stiff(EStiff);
-		ETGrad grad(EGrad);
-
-	if(!regressionData_.isLocationsByNodes())
-	{
-		//std::cout<<"HERE";
-		setPsi();
-	}
-
-	if(!regressionData_.getCovariates().rows() == 0)
-	{
-		setH();
-		setQ();
-	}
-
-    if(!regressionData_.isLocationsByNodes())
-    {
-    	getDataMatrix(DMat_);
-    }
-    else
-    {
-    	getDataMatrixByIndices(DMat_);
-    }
-    //std::cout<<"Block Data"<<DMat_<<std::endl;
-
-    const Reaction& c = regressionData_.getC();
-    const Diffusivity& K = regressionData_.getK();
-    const Advection& beta = regressionData_.getBeta();
-    Assembler::operKernel(c*mass+stiff[K]+dot(beta,grad), mesh_, fe, AMat_);
-    Assembler::operKernel(mass, mesh_, fe, MMat_);
-
-    const ForcingTerm& u = regressionData_.getU();
-    //for(auto i=0;i<18;i++) std::cout<<u(i)<<std::endl;
-    VectorXr forcingTerm;
-    Assembler::forcingTerm(mesh_,fe, u, forcingTerm);
-
-    VectorXr rightHandData;
-    getRightHandData(rightHandData);
-    //_b.resize(2*nnodes);
-    _b = VectorXr::Zero(2*nnodes);
-    _b.topRows(nnodes)=rightHandData;
-
-    _solution.resize(regressionData_.getLambda().size());
-    _dof.resize(regressionData_.getLambda().size());
-#pragma omp parallel for
-    for(UInt i = 0; i<regressionData_.getLambda().size(); ++i)
-	{
-    	//build(tripletsData_,(-regressionData_.getLambda())*stiff, (-regressionData_.getLambda())*mass, righthand, forcing);
-
-    	Real lambda = regressionData_.getLambda()[i];
-    	SpMat AMat_lambda = (-lambda)*AMat_;
-    	SpMat MMat_lambda = (-lambda)*MMat_;
     	//this->buildCoeffMatrix(DMat_, AMat_lambda, MMat_lambda);
 
 	SpMat coeffmatrix_lambda;
 	buildCoeffMatrix(DMat_, AMat_lambda, MMat_lambda, coeffmatrix_lambda);
 
-        //std::cout<<"Forcing Term "<<std::cout<<forcingTerm<<"END";
-        _b.bottomRows(nnodes)=lambda*forcingTerm;
-        //std::cout<<"b vector"<<_b;
-    	//std::cout<<"AMat"<<std::endl<<_coeffmatrix;
-
 
     	//Appling border conditions if necessary
-    	if(regressionData_.getDirichletIndices().size() != 0)
-    		addDirichletBC(regressionData_.getDirichletIndices(), regressionData_.getDirichletValues(), coeffmatrix_lambda);
+    	if(fPCAData_.getDirichletIndices().size() != 0){
+    		addDirichletBC(fPCAData_.getDirichletIndices(), fPCAData_.getDirichletValues(), coeffmatrix_lambda);}
 
     	//prova.solveSystem<SpConjGrad>();
-
-    	//std::cout<< _coeffmatrix;
     	this-> template solve<SpLU>(i, coeffmatrix_lambda);
-    	if(regressionData_.computeDOF())
-    		computeDegreesOfFreedom(i,coeffmatrix_lambda);
-    	else
+	if(fPCAData_.computeDOF()){
+		computeDegreesOfFreedom(i, coeffmatrix_lambda);
+    	}else
     		_dof[i] = -1;
 
 	}
+	fPCAData_.setLoadings(psi_,_solution[0]);
+	std::cout<<fPCAData_.getLoadings()<<std::endl;
+	}
+
 }
-}
-*/
+
 
 //solve sparse system with P method
 

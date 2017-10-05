@@ -134,5 +134,10 @@ void FPCAData::setDataForRegression()
 	ObservationData_=observations_*scores_;
 }
 
+void FPCAData::setLoadings(SpMat psi, VectorXr f_sol)
+{
+	loadings_=psi.transpose()*f_sol;
+}
+
 #endif
 

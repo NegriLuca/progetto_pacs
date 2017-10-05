@@ -567,24 +567,24 @@ SEXP FPCA_Laplace(SEXP Rlocations, SEXP Robservations, SEXP Rmesh, SEXP Rorder, 
 		//std::cout<<"Dimension of X: "<<fPCAdata.getObservations().rows()<<"  "<<fPCAdata.getObservations().cols()<<std::endl;
 		//std::cout<<"Dimension of X transp: "<<fPCAdata.getObservations().transpose().rows()<<"  "<<fPCAdata.getObservations().transpose().cols()<<std::endl;
 		Eigen::JacobiSVD<MatrixXr> svd(fPCAdata.getObservations().transpose(),Eigen::ComputeThinU|Eigen::ComputeThinV);
-		//std::cout<<"Dimension of U: "<<svd.matrixU().rows()<<"  "<<svd.matrixU().cols()<<std::endl;
+		//std::cout<<"Dimension of U : "<<svd.matrixU().rows()<<"  "<<svd.matrixU().cols()<<std::endl;
 		//std::cout<<"Dimension of V: "<<svd.matrixV().rows()<<"  "<<svd.matrixV().cols()<<std::endl;
 		//std::cout<<svd.matrixU()<<std::endl;
 		VectorXr fs=svd.matrixV().col(0);
 		//std::cout<<"Vector fs: "<<fs<<std::endl;
 		VectorXr u=fPCAdata.getObservations().transpose()*fs;
-		//std::cout<<"Vector u: "<<u<<std::endl;
+		//std::cout<<"Vector u: "<<u <<std::endl;
 		u=u/u.norm();
-		//std::cout<<" Vector u normalized: "<<u<<std::endl;
+		//std::cout<<" Vector uu normalized: "<<u<<std::endl;
 		VectorXr data=fPCAdata.getObservations()*u;
-		//std::cout<<"Vector data : "<<data<<std::endl;
+		//std::cout<<"Vector data :  "<<data<<std::endl;
 		
 		MixedFERegression<FPCAData,IntegratorTriangleP2,1,2,3> fpca(mesh,fPCAdata);
 		
 		
 		//MixedFERegression<RegressionData, IntegratorTriangleP2,1,2,3> regression(mesh,regressionData);
 
-		fpca.smoothLaplace();
+		fpca.smoothFPCA();
 /*
 		const std::vector<VectorXr>& solution = regression.getSolution();
 		const std::vector<Real>& dof = regression.getDOF();
